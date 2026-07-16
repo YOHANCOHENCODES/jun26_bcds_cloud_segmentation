@@ -10,7 +10,25 @@ def test_rle_decode_simple_run():
     mask = rle_decode("2 2", shape=(2, 2))
 
     expected = np.array([[0, 1],
-                         [1, 0]], dtype=np.uint8)
+                         [1, 0]],
+                        dtype=np.uint8)
+    np.testing.assert_array_equal(mask, expected)
+
+
+def test_rle_decode_run_with_a_bigger_shape():
+    mask = rle_decode("2 3", shape=(3, 4))
+
+    # NOTE:
+    # To meet the Kaggle RLE conventions the array was filled by rows, not as
+    # you might expect by columns. So, instead of looking like:
+    #       [0, 1, 1, 1]
+    #       [0, 0, 0, 0]
+    #       [0, 0, 0, 0]
+    # it looks like this:
+    expected = np.array([[0, 1, 0, 0],
+                         [1, 0, 0, 0],
+                         [1, 0, 0, 0]],
+                        dtype=np.uint8)
     np.testing.assert_array_equal(mask, expected)
 
 
