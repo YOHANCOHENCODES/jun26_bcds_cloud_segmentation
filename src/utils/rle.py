@@ -1,7 +1,7 @@
 import numpy as np
 
 
-def rle_decode(rle_string, shape):
+def decode_rle(rle_string, shape):
     """Decode a run-length-encoded segmentation mask.
 
     Args:
