@@ -32,6 +32,15 @@ def test_rle_decode_run_with_a_bigger_shape():
     np.testing.assert_array_equal(mask, expected)
 
 
+def test_rle_decode_run_with_a_bigger_rle_string():
+    mask = decode_rle("2 3 7 3", shape=(3, 4))
+    expected = np.array([[0, 1, 1, 0],
+                         [1, 0, 1, 0],
+                         [1, 0, 1, 0]],
+                        dtype=np.uint8)
+    np.testing.assert_array_equal(mask, expected)
+
+
 def test_rle_decode_nan_returns_empty_mask():
     # In train.csv, EncodedPixels is NaN when an image has no label
     # for the category -> mask should be all zeros
