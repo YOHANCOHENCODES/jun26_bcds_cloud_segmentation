@@ -1,0 +1,20 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(pip show *)",
+      "Read(//c/Users/uwero/AppData/Local/Temp/claude/c--Users-uwero-REPOS-Python-jun26-bcds-cloud-segmentation/195f688c-dec5-4f62-96af-2b650cbc4caa/scratchpad/**)",
+      "Bash(python -m venv test_imgaug_env)",
+      "Bash(ls \"/c/Users/uwero/AppData/Local/Temp/claude/c--Users-uwero-REPOS-Python-jun26-bcds-cloud-segmentation/195f688c-dec5-4f62-96af-2b650cbc4caa/scratchpad\")",
+      "Bash(/c/Users/uwero/AppData/Local/Temp/claude/c--Users-uwero-REPOS-Python-jun26-bcds-cloud-segmentation/195f688c-dec5-4f62-96af-2b650cbc4caa/scratchpad/test_imgaug_env/Scripts/python.exe -m pip install --quiet imgaug)",
+      "Bash(/c/Users/uwero/AppData/Local/Temp/claude/c--Users-uwero-REPOS-Python-jun26-bcds-cloud-segmentation/195f688c-dec5-4f62-96af-2b650cbc4caa/scratchpad/test_imgaug_env/Scripts/python.exe -m pip show imgaug numpy scikit-image)",
+      "Bash(rm -rf \"/c/Users/uwero/AppData/Local/Temp/claude/c--Users-uwero-REPOS-Python-jun26-bcds-cloud-segmentation/195f688c-dec5-4f62-96af-2b650cbc4caa/scratchpad/test_imgaug_env\")",
+      "Bash(python -m ruff check src/)",
+      "Bash(python \"C:/Users/uwero/AppData/Local/Temp/claude/c--Users-uwero-REPOS-Python-jun26-bcds-cloud-segmentation/195f688c-dec5-4f62-96af-2b650cbc4caa/scratchpad/smoke_segmap.py\")",
+      "Bash(PYTHONPATH=\"c:/Users/uwero/REPOS/Python/jun26_bcds_cloud_segmentation\" python \"C:/Users/uwero/AppData/Local/Temp/claude/c--Users-uwero-REPOS-Python-jun26-bcds-cloud-segmentation/195f688c-dec5-4f62-96af-2b650cbc4caa/scratchpad/smoke_segmap.py\")",
+      "Bash(PYTHONPATH=\"c:/Users/uwero/REPOS/Python/jun26_bcds_cloud_segmentation\" python \"C:/Users/uwero/AppData/Local/Temp/claude/c--Users-uwero-REPOS-Python-jun26-bcds-cloud-segmentation/195f688c-dec5-4f62-96af-2b650cbc4caa/scratchpad/smoke_stack.py\")"
+    ],
+    "additionalDirectories": [
+      "C:\\Users\\uwero\\AppData\\Local\\Temp\\claude\\c--Users-uwero-REPOS-Python-jun26-bcds-cloud-segmentation\\195f688c-dec5-4f62-96af-2b650cbc4caa\\scratchpad\\test_imgaug_env"
+    ]
+  }
+}

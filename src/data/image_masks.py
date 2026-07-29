@@ -6,6 +6,16 @@ import pandas as pd
 
 from src.utils.rle import decode_rle
 
+# Class ids of the cloud labels in a combined segmentation map (0 is the
+# background). The order also defines the priority when masks overlap: A label
+# further down overwrites the ones above it.
+LABEL_CLASS_IDS: dict[str, int] = {
+    'fish': 1,
+    'flower': 2,
+    'gravel': 3,
+    'sugar': 4,
+}
+
 
 @dataclass
 class ImageMask:
@@ -44,6 +54,7 @@ class ImageMasks:
             image_shape=(384, 576)
     ):
         self.df = df
+        self.image_shape = image_shape
 
         # Get the name of the 'requested-by-its-id' image
         self.image_name = self._get_image_name_from_id(image_id)
@@ -77,6 +88,59 @@ class ImageMasks:
 
     def get_name(self) -> str:
         return self.image_name
+
+    def get_image_path(self) -> Path:
+        """Return the full path of the image all these masks belong to."""
+        return next(iter(self.image_data.values())).path / self.image_name
+
+    def get_segmap(self) -> np.ndarray:
+        """Combine the masks of all labels into a single segmentation map, in
+        which every pixel holds the class id of its label (see
+        `LABEL_CLASS_IDS`) and 0 means background.
+
+        NOTE: A pixel can hold only one class id. So where masks overlap, the
+        label with the higher class id wins and the other ones are not
+        visible in the result.
+        """
+        segmap = np.zeros(self.image_shape, dtype=np.int32)
+
+        for label_name, class_id in LABEL_CLASS_IDS.items():
+            image_mask = self.image_data.get(label_name)
+
+            # The `DataFrame` may not hold a row for every label of this image
+            if image_mask is None:
+                continue
+
+            segmap[image_mask.mask_pixels > 0] = class_id
+
+        return segmap
+
+    def get_mask_stack(self) -> np.ndarray:
+        """Stack the masks of all labels into a single array of the shape
+        `(len(LABEL_CLASS_IDS), height, width)`, which holds 1 where a label
+        is present and 0 where it is not.
+
+        Channel `i` belongs to the label `list(LABEL_CLASS_IDS)[i]`, so the
+        channel of a label is its class id minus 1.
+
+        Unlike `get_segmap()` this keeps overlapping masks intact, because
+        every label gets a channel of its own. It is the form a multi-label
+        segmentation model needs.
+        """
+        height, width = self.image_shape
+        stack = np.zeros(
+            (len(LABEL_CLASS_IDS), height, width), dtype=np.uint8)
+
+        for channel, label_name in enumerate(LABEL_CLASS_IDS):
+            image_mask = self.image_data.get(label_name)
+
+            # The `DataFrame` may not hold a row for every label of this image
+            if image_mask is None:
+                continue
+
+            stack[channel] = image_mask.mask_pixels > 0
+
+        return stack
 
     def _get_image_name_from_id(self, id: int) -> str:
         return str(self.df.at[id, 'Image'])
