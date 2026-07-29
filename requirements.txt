@@ -1,9 +1,9 @@
-pandas
+jupyter
 matplotlib
-scikit-learn
 opencv-python
+pandas
 pillow
 pytest
-jupyter
-streamlit
+scikit-learn
 seaborn
+streamlit
