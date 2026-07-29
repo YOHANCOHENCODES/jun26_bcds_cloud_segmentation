@@ -11,7 +11,9 @@
       "Bash(python -m ruff check src/)",
       "Bash(python \"C:/Users/uwero/AppData/Local/Temp/claude/c--Users-uwero-REPOS-Python-jun26-bcds-cloud-segmentation/195f688c-dec5-4f62-96af-2b650cbc4caa/scratchpad/smoke_segmap.py\")",
       "Bash(PYTHONPATH=\"c:/Users/uwero/REPOS/Python/jun26_bcds_cloud_segmentation\" python \"C:/Users/uwero/AppData/Local/Temp/claude/c--Users-uwero-REPOS-Python-jun26-bcds-cloud-segmentation/195f688c-dec5-4f62-96af-2b650cbc4caa/scratchpad/smoke_segmap.py\")",
-      "Bash(PYTHONPATH=\"c:/Users/uwero/REPOS/Python/jun26_bcds_cloud_segmentation\" python \"C:/Users/uwero/AppData/Local/Temp/claude/c--Users-uwero-REPOS-Python-jun26-bcds-cloud-segmentation/195f688c-dec5-4f62-96af-2b650cbc4caa/scratchpad/smoke_stack.py\")"
+      "Bash(PYTHONPATH=\"c:/Users/uwero/REPOS/Python/jun26_bcds_cloud_segmentation\" python \"C:/Users/uwero/AppData/Local/Temp/claude/c--Users-uwero-REPOS-Python-jun26-bcds-cloud-segmentation/195f688c-dec5-4f62-96af-2b650cbc4caa/scratchpad/smoke_stack.py\")",
+      "Bash(python \"C:/Users/uwero/AppData/Local/Temp/claude/c--Users-uwero-REPOS-Python-jun26-bcds-cloud-segmentation/195f688c-dec5-4f62-96af-2b650cbc4caa/scratchpad/verify_cell.py\")",
+      "Bash(python -c ' *)"
     ],
     "additionalDirectories": [
       "C:\\Users\\uwero\\AppData\\Local\\Temp\\claude\\c--Users-uwero-REPOS-Python-jun26-bcds-cloud-segmentation\\195f688c-dec5-4f62-96af-2b650cbc4caa\\scratchpad\\test_imgaug_env"
