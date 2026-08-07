@@ -8,3 +8,4 @@ scikit-learn
 seaborn
 streamlit
 albumentations==2.0.8
+tensorflow
