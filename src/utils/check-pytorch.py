@@ -10,3 +10,10 @@ if cuda_available:
     print(f'Tensor device: {x.device} (Success!)')
 else:
     print('PyTorch is currently using the CPU.')
+
+# NOTE by Uwe Rosner, 11.08.2026: On my Computer at home this outputs:
+#
+#    Is CUDA available? True
+#    Number of GPUs: 1
+#    Current GPU Name: NVIDIA GeForce RTX 5060
+#    Tensor device: cuda:0 (Success!)
