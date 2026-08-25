@@ -167,3 +167,5 @@ cython_debug/
 
 # Data folder
 /data/
+
+/Liora-MLE-Training/
