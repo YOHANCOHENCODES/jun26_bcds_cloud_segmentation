@@ -1,11 +1,11 @@
 import cv2
 import matplotlib.pyplot as plt
 import numpy as np
+from IPython.display import Markdown, display
 
 from src.data.cloud_segmentation_image import (
     LABEL_CLASS_IDS,
     CloudSegmentationImage,
-    ImageMask,
 )
 
 # The RGB colors used to draw each cloud label onto an image
@@ -20,36 +20,39 @@ LABEL_COLORS: dict[str, tuple[int, int, int]] = {
 MIN_LABELED_SEGMENT_AREA = 500
 
 
-def display_masked_image(image_mask: ImageMask):
-    """Display given image with 3 visualizations: The image (left), the mask
-    (center) and the image with the mask as an overlay (right)"""
-    # Create a figure with 3 sublots in one row
-    fig, axes = plt.subplots(1, 3, figsize=(18, 4))
+def display_masks_by_rows(csi: CloudSegmentationImage):
+    display(Markdown(f'## Image {csi.get_name()}'))
+    for mask in csi.get_all_masks():
+        img = csi.get_image_rgb()
+        if img is None:
+            continue
 
-    # Read the image
-    img = plt.imread(image_mask.path / image_mask.filename)
+        # Create a figure with 3 sublots in one row
+        fig, axes = plt.subplots(1, 3, figsize=(18, 4))
 
-    # Display the image
-    axes[0].imshow(img)
-    axes[0].set_title(image_mask.filename)
+        # Display the image
+        axes[0].imshow(img)
+        axes[0].set_title(csi.image_name)
 
-    # Display the mask
-    axes[1].imshow(image_mask.mask_pixels, cmap='gray')
-    axes[1].set_title(f'Mask: {image_mask.filename}')
+        # Display the mask
+        axes[1].imshow(mask.mask_pixels, cmap='gray')
+        axes[1].set_title(f'Mask: {csi.image_name}')
 
-    # Display the image with a transparent overlay
-    axes[2].imshow(img)
-    axes[2].imshow(image_mask.mask_pixels, cmap='Reds', alpha=0.4)
-    axes[2].set_title(f'Mask region labeled as "{image_mask.label_name}"')
+        # Display the image with a transparent overlay
+        axes[2].imshow(img)
+        axes[2].imshow(mask.mask_pixels, cmap='Reds', alpha=0.4)
+        axes[2].set_title(f'Mask region labeled as "{mask.label_name}"')
 
-    # Turn off the scales for all axes
-    for ax in axes:
-        ax.axis('off')
-    plt.show()
+        # Turn off the scales for all axes
+        for ax in axes:
+            ax.axis('off')
+        plt.show()
 
 
-def display_seg_masked_image(csi: CloudSegmentationImage):
+def display_masks_overlay(csi: CloudSegmentationImage):
     result = draw_segmap_on_image(csi, alpha=0.4, draw_label_names=True)
+    if result is None:
+        return
 
     plt.imshow(result)
     plt.axis('off')
@@ -57,52 +60,40 @@ def display_seg_masked_image(csi: CloudSegmentationImage):
     plt.show()
 
 
-def draw_mask_on_image(
-    image_mask: ImageMask,
-    color: tuple[int, int, int] = (255, 0, 0),
-    alpha: float = 0.5,
-) -> np.ndarray:
-    """Overlay an `ImageMask`'s binary mask on its image.
-
-    `color` is the RGB color used for the mask and `alpha` is the blend
-    strength (0 = invisible, 1 = solid color).
-    """
-    img = plt.imread(image_mask.path / image_mask.filename)
-    overlay = img.copy()
-    overlay[image_mask.mask_pixels > 0] = color
-
-    return (img * (1 - alpha) + overlay * alpha).astype(np.uint8)
-
-
 def draw_segmap_on_image(
     csi: CloudSegmentationImage,
     label_colors: dict[str, tuple[int, int, int]] | None = None,
     alpha: float = 0.5,
     draw_label_names: bool = False,
-) -> np.ndarray:
-    """Overlay the combined segmentation map of an `ImageMasks` on its image.
+) -> np.ndarray | None:
+    """Overlay the combined segmentation map of a `CloudSegmentationImage` on
+    its image.
 
     `label_colors` maps a lowercase label name to an RGB color and defaults to
     `LABEL_COLORS`. `alpha` is the blend strength (0 = invisible, 1 = solid
     color). With `draw_label_names` the name of the label is written into the
     top left corner of every segment (see `draw_label_names_on_image()`).
 
-    NOTE: Overlapping masks are already resolved by `ImageMasks.get_segmap()`,
-    so each pixel only shows the label with the highest class id.
+    NOTE: Overlapping masks are already resolved by
+    `CloudSegmentationImage.get_segmap()`, so each pixel only shows the label
+    with the highest class id.
     """
     if label_colors is None:
         label_colors = LABEL_COLORS
 
     segmap = csi.get_segmap()
 
-    img = plt.imread(csi.get_image_path())
+    img = csi.get_image_rgb()
+    if img is None:
+        return None
+
     overlay = img.copy()
 
     for label_name, class_id in LABEL_CLASS_IDS.items():
         if label_name in label_colors:
             overlay[segmap == class_id] = label_colors[label_name]
 
-    # Blend the original img with the colored overlay (the colored seg masks)
+    # Alpha-blend the image with the colored overlay
     blended = (img * (1 - alpha) + overlay * alpha).astype(np.uint8)
 
     if draw_label_names:
@@ -142,12 +133,12 @@ def draw_label_names_on_image(
         for x, y, _, _, area in stats[1:]:
             if area < min_segment_area:
                 continue
-            _draw_text(labeled, label_name, x, y, font_scale, thickness)
+            draw_text(labeled, label_name, x, y, font_scale, thickness)
 
     return labeled
 
 
-def _draw_text(
+def draw_text(
     image: np.ndarray,
     text: str,
     x: int,

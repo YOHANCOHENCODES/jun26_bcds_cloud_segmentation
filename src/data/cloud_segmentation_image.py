@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 from pathlib import Path
 
+import cv2
 import numpy as np
 import pandas as pd
 
@@ -18,11 +19,9 @@ LABEL_CLASS_IDS: dict[str, int] = {
 
 
 @dataclass
-class ImageMask:
+class DecodedMask:
     """Data of a single image for one label."""
 
-    path: Path
-    filename: str
     mask_pixels: np.ndarray
     label_name: str
 
@@ -31,61 +30,70 @@ class ImageMask:
         cls,
         df: pd.DataFrame,
         image_id: int,
-        image_path: Path,
         image_shape=(384, 576),
-    ) -> 'ImageMask':
+    ) -> 'DecodedMask':
         """Create an `ImageMask` instance from given `DataFrame`. The
         `DataFrame` must be suitable to our data: It must contain the columns
-        `Image` (image file name), `EncodedPixels` (with rle), `Label`
-        (name as str).
+        `EncodedPixels` (with rle) and `Label` (cloud type as str).
         """
-        filename = df.iloc[image_id]['Image']
         encoded_mask_pixels = df.iloc[image_id]['EncodedPixels']
         label = df.iloc[image_id]['Label']
         decoded_mask_pixels = decode_rle(encoded_mask_pixels, image_shape)
-        return cls(image_path, filename, decoded_mask_pixels, label)
+        return cls(decoded_mask_pixels, label)
 
 
 class CloudSegmentationImage:
     def __init__(
         self,
         labels_df: pd.DataFrame,
-        image_id: int,
+        requested_image_id_in_df: int,
         image_path: Path,
         image_shape=(384, 576),
     ):
         self.df = labels_df
+        self.image_path = image_path
         self.image_shape = image_shape
 
+        self.image_rgb: np.ndarray | None = None
+
         # Get the name of the 'requested-by-its-id' image
-        self.image_name = self._get_image_name_from_id(image_id)
+        self.image_name = self._get_image_name_from_id(requested_image_id_in_df)
 
         # Get all id's (rows) for this name
         image_ids = self._get_image_ids(self.image_name)
 
         # Create an empty dictionary
-        self.image_masks: dict[str, ImageMask] = {}
+        self.image_masks: dict[str, DecodedMask] = {}
 
         # Iterate the image_id's and create an `ImageMask` for each of them
         for id in image_ids:
-            image_mask = ImageMask.from_dataframe(
-                labels_df, id, image_path, image_shape
-            )
+            image_mask = DecodedMask.from_dataframe(labels_df, id, image_shape)
             self.image_masks[image_mask.label_name.lower()] = image_mask
 
-    def get_fish_mask(self) -> ImageMask:
+    def get_image_rgb(self):
+        # If there in no imag RGB data yet, these are loaded first
+        if self.image_rgb is None:
+            image_full_path = str(self.image_path / self.image_name)
+            image_bgr = cv2.imread(image_full_path)
+            if image_bgr is None:
+                return None
+            # Convert the BGR data that has been loaded by cv2.imread() to RGB
+            self.image_rgb = cv2.cvtColor(src=image_bgr, code=cv2.COLOR_BGR2RGB)
+        return self.image_rgb
+
+    def get_fish_mask(self) -> DecodedMask:
         return self.image_masks['fish']
 
-    def get_flower_mask(self) -> ImageMask:
+    def get_flower_mask(self) -> DecodedMask:
         return self.image_masks['flower']
 
-    def get_gravel_mask(self) -> ImageMask:
+    def get_gravel_mask(self) -> DecodedMask:
         return self.image_masks['gravel']
 
-    def get_sugar_mask(self) -> ImageMask:
+    def get_sugar_mask(self) -> DecodedMask:
         return self.image_masks['sugar']
 
-    def get_all_masks(self) -> list[ImageMask]:
+    def get_all_masks(self) -> list[DecodedMask]:
         return list(self.image_masks.values())
 
     def get_name(self) -> str:
@@ -93,7 +101,7 @@ class CloudSegmentationImage:
 
     def get_image_path(self) -> Path:
         """Return the full path of the image all these masks belong to."""
-        return next(iter(self.image_masks.values())).path / self.image_name
+        return self.image_path / self.image_name
 
     def get_segmap(self) -> np.ndarray:
         """Combine the masks of all labels into a single segmentation map, in
@@ -112,9 +120,7 @@ class CloudSegmentationImage:
             # The `DataFrame` may not hold a row for every label of this image
             if image_mask is None:
                 continue
-
             segmap[image_mask.mask_pixels > 0] = class_id
-
         return segmap
 
     def get_mask_stack(self) -> np.ndarray:
