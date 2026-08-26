@@ -50,6 +50,9 @@ class CloudSegmentationImage:
         image_path: Path,
         image_shape=(384, 576),
     ):
+        """Build a `CloudSegmentationImage` for the image referenced by
+        `requested_image_id_in_df`, decoding its masks from `labels_df`.
+        """
         self.df = labels_df
         self.image_path = image_path
         self.image_shape = image_shape
@@ -69,6 +72,33 @@ class CloudSegmentationImage:
         for id in image_ids:
             image_mask = DecodedMask.from_dataframe(labels_df, id, image_shape)
             self.image_masks[image_mask.label_name.lower()] = image_mask
+
+    @classmethod
+    def from_image_and_masks(
+        cls,
+        image_rgb: np.ndarray,
+        mask_stack: np.ndarray,
+        image_name: str,
+        image_path: Path,
+    ) -> 'CloudSegmentationImage':
+        """Build a `CloudSegmentationImage` directly from an already-decoded
+        image and a mask stack (e.g. produced by an augmentation pipeline),
+        bypassing the usual DataFrame/RLE-based construction.
+        """
+        # Create the instance without calling __init__
+        instance = cls.__new__(cls)
+        instance.df = None
+        instance.image_path = image_path
+        instance.image_shape = image_rgb.shape[:2]
+        instance.image_rgb = image_rgb
+        instance.image_name = image_name
+        instance.image_masks = {
+            label_name: DecodedMask(
+                mask_stack[channel], label_name.capitalize()
+            )
+            for channel, label_name in enumerate(LABEL_CLASS_IDS)
+        }
+        return instance
 
     def get_image_rgb(self):
         # If there in no imag RGB data yet, these are loaded first

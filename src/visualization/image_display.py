@@ -107,8 +107,7 @@ def draw_label_names_on_image(
     segmap: np.ndarray,
     min_segment_area: int = MIN_LABELED_SEGMENT_AREA,
 ) -> np.ndarray:
-    """Write the label name into the top left corner of every segment of
-    `segmap`.
+    """Write the label name into the center of every segment of `segmap`.
 
     The mask of a label can fall apart into several separate regions, so every
     connected region gets a name of its own. Regions smaller than
@@ -125,15 +124,19 @@ def draw_label_names_on_image(
 
     for label_name, class_id in LABEL_CLASS_IDS.items():
         mask = (segmap == class_id).astype(np.uint8)
-        _, _, stats, _ = cv2.connectedComponentsWithStats(mask)
+        _, _, stats, centroids = cv2.connectedComponentsWithStats(mask)
 
-        # The first row of `stats` is the background of `mask`, so it is left
-        # out. The other rows hold one region each as (x, y, width, height,
-        # area), with (x, y) being its top left corner.
-        for x, y, _, _, area in stats[1:]:
-            if area < min_segment_area:
+        # The first row of `stats`/`centroids` is the background of `mask`, so
+        # it is left out. `centroids[i]` is the center of mass of region `i` -
+        # unlike a bounding box corner, it stays inside the region even when
+        # the mask is rotated or otherwise non-rectangular.
+        for i in range(1, len(stats)):
+            if stats[i, cv2.CC_STAT_AREA] < min_segment_area:
                 continue
-            draw_text(labeled, label_name, x, y, font_scale, thickness)
+            center_x, center_y = centroids[i]
+            draw_text(
+                labeled, label_name, center_x, center_y, font_scale, thickness
+            )
 
     return labeled
 
@@ -141,21 +144,24 @@ def draw_label_names_on_image(
 def draw_text(
     image: np.ndarray,
     text: str,
-    x: int,
-    y: int,
+    center_x: float,
+    center_y: float,
     font_scale: float,
     thickness: int,
 ) -> None:
-    """Draw `text` into `image` (in place) with its top left corner at
-    `(x, y)`."""
+    """Draw `text` into `image` (in place), centered on `(center_x,
+    center_y)`."""
     font = cv2.FONT_HERSHEY_SIMPLEX
-    (_, text_height), baseline = cv2.getTextSize(
+    (text_width, text_height), baseline = cv2.getTextSize(
         text, font, font_scale, thickness
     )
 
-    # `cv2.putText()` expects the bottom left corner of the text, so the text
-    # has to be moved down by its own height to start at `(x, y)`
-    origin = (int(x), int(y) + text_height + baseline)
+    # `cv2.putText()` expects the bottom left corner of the text, so it has to
+    # be offset by half the text's own size to end up centered on the point
+    origin = (
+        int(center_x - text_width / 2),
+        int(center_y + (text_height + baseline) / 2),
+    )
 
     # A thicker black text below the white one acts as an outline and keeps the
     # name readable on both the image and the colors of the overlay
