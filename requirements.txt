@@ -1,3 +1,4 @@
+albumentationsx
 jupyter
 matplotlib
 opencv-python
@@ -6,6 +7,6 @@ pillow
 pytest
 scikit-learn
 seaborn
+segmentation-models-pytorch
 streamlit
-albumentationsx
 tensorflow
