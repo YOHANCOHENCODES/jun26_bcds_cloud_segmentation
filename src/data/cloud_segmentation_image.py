@@ -36,8 +36,8 @@ class DecodedMask:
         `DataFrame` must be suitable to our data: It must contain the columns
         `EncodedPixels` (with rle) and `Label` (cloud type as str).
         """
-        encoded_mask_pixels = df.iloc[image_id]['EncodedPixels']
-        label = df.iloc[image_id]['Label']
+        encoded_mask_pixels = df.at[image_id, 'EncodedPixels']
+        label = df.at[image_id, 'Label']
         decoded_mask_pixels = decode_rle(encoded_mask_pixels, image_shape)
         return cls(decoded_mask_pixels, label)
 
