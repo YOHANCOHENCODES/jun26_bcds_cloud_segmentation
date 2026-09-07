@@ -1,0 +1,31 @@
+# Local development environment: notebooks, tests and model training.
+#
+# Setup:
+#   pip install -e . -r requirements-dev.txt
+#
+# torch/torchvision are deliberately unpinned here so this file never touches
+# your CUDA build. Install them for your own platform first, following
+# https://pytorch.org/get-started/locally/ (currently 2.11.0+cu128 / 0.26.0+cu128).
+
+# --- app dependencies (unpinned; requirements.txt pins them for deployment) ---
+segmentation-models-pytorch
+streamlit
+pandas
+numpy
+matplotlib
+albumentationsx
+opencv-python
+ipython
+
+# --- notebooks and training ---
+jupyter
+scikit-learn
+seaborn
+pillow
+
+# Used only by notebooks/3.1-mahsa-* and notebooks/3.2-mahsa-*, which build
+# their models with Keras instead of torch. Not needed by the Streamlit app.
+tensorflow
+
+# --- tests ---
+pytest

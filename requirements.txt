@@ -1,12 +1,33 @@
-albumentationsx
-jupyter
-matplotlib
-opencv-python
-pandas
-pillow
-pytest
-scikit-learn
-seaborn
-segmentation-models-pytorch
-streamlit
-tensorflow
+# Runtime dependencies of the deployed Streamlit app.
+#
+# This file targets Streamlit Community Cloud (Linux, CPU only). Do NOT install
+# it into a local GPU dev environment - the torch pins below would replace your
+# CUDA build with the CPU one. For local work see requirements-dev.txt.
+
+# Installs this repo as a package so that `from src.data.labels import ...`
+# resolves. Streamlit Cloud only runs `pip install -r requirements.txt`, so the
+# editable install has to be requested from here. (If Cloud rejects the `-e`,
+# plain `.` works too - it copies src/ into site-packages instead.)
+-e .
+
+# CPU-only torch. The default PyPI wheels pull in the CUDA runtime as
+# nvidia-* packages (several GB) and exceed Streamlit Cloud's resource limit.
+# torchvision is pinned from the same index because segmentation-models-pytorch
+# depends on it, and the PyPI build would drag the CUDA torch back in.
+--extra-index-url https://download.pytorch.org/whl/cpu
+torch==2.11.0+cpu
+torchvision==0.26.0+cpu
+
+segmentation-models-pytorch==0.5.0
+streamlit==1.62.0
+pandas==3.0.5
+numpy==2.5.1
+matplotlib==3.10.8
+albumentationsx==2.4.3
+
+# Headless build: the regular opencv-python needs libGL, which is absent on
+# Streamlit Cloud unless you also add a packages.txt with libgl1.
+opencv-python-headless==4.13.0.92
+
+# src/visualization/image_display.py imports IPython.display
+ipython==9.12.0
