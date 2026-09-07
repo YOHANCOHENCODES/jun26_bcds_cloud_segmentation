@@ -1,4 +1,7 @@
+from pathlib import Path
+
 import numpy as np
+import segmentation_models_pytorch as smp
 import torch
 
 from src.data.cloud_segmentation_dataset import IMAGENET_MEAN, IMAGENET_STD
@@ -8,6 +11,35 @@ from src.data.cloud_segmentation_dataset import IMAGENET_MEAN, IMAGENET_STD
 # `src.visualization.image_display`, which uses the same idea for labeling
 # ground-truth segments.
 MIN_DETECTION_AREA = 500
+
+# Architecture the checkpoints in `models/` were trained with. A saved
+# `state_dict` holds the weights only, so the model has to be rebuilt with
+# exactly these settings before the weights fit back into it.
+PSPNET_ENCODER = 'resnet34'
+NUM_CLASSES = 4
+
+
+def load_pspnet(
+    path: Path,
+    device: torch.device,
+    encoder_name: str = PSPNET_ENCODER,
+    classes: int = NUM_CLASSES,
+) -> torch.nn.Module:
+    """Rebuild the PSPNet architecture and load the trained weights that
+    `torch.save(model.state_dict(), path)` wrote to `path` into it.
+
+    The returned model sits on `device` and is in eval mode, ready to be
+    passed to `predict_mask_stack`. `encoder_weights` stays `None` here: the
+    ImageNet weights the encoder started training from are overwritten by the
+    checkpoint anyway, so there is no point in downloading them again.
+    """
+    model = smp.PSPNet(
+        encoder_name=encoder_name, encoder_weights=None, classes=classes
+    )
+    model.load_state_dict(torch.load(path, map_location=device))
+    model = model.to(device)
+    model.eval()
+    return model
 
 
 def predict_mask_stack(
