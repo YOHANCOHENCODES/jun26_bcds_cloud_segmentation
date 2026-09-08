@@ -2,7 +2,17 @@
 
 This repo is a Starting Pack for DS projects. You can rearrange the structure to make it fits your project.
 
-Project Organization
+### Development
+
+For local Python development, with an active Python `venv`, first run this command:
+
+```
+pip install -r requirements-dev.txt
+```
+
+**NOTE:** The other file, `requirements.txt`, shouldn't be run on your dev machine. This one is needed for the GitHub/CLoud deployment of the Streamlit app.
+
+### Project Organization
 
 ```
     ├── LICENSE
