@@ -3,22 +3,19 @@ from pathlib import Path
 import pandas as pd
 import segmentation_models_pytorch as smp
 import torch
+from config import PSPNET_MODEL_PATH, TRAIN_LABELS_PATH
 
 import streamlit as st
-
-# from data.labels import load_processed_labels
 from src.data.labels import load_processed_labels
 
 
 @st.cache_data
-def load_labels(data_dir: Path) -> pd.DataFrame:
-    data_dir = data_dir / 'train.csv'
-    return load_processed_labels(data_dir)
+def load_labels() -> pd.DataFrame:
+    return load_processed_labels(TRAIN_LABELS_PATH)
 
 
 @st.cache_resource
-def load_model_pspnet(models_dir: Path, device: torch.device) -> smp.PSPNet:
-    models_dir = models_dir / 'pspnet_resnet34_binary.pth'
+def load_model_pspnet(device: torch.device) -> smp.PSPNet:
     model = smp.PSPNet(encoder_name='resnet34', encoder_weights=None, classes=4)
-    model.load_state_dict(torch.load(models_dir, map_location=device))
+    model.load_state_dict(torch.load(PSPNET_MODEL_PATH, map_location=device))
     return model.to(device).eval()
