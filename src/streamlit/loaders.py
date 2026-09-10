@@ -1,5 +1,3 @@
-from pathlib import Path
-
 import pandas as pd
 import segmentation_models_pytorch as smp
 import torch

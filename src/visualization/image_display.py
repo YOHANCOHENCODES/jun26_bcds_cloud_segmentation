@@ -20,6 +20,14 @@ LABEL_COLORS: dict[str, tuple[int, int, int]] = {
 MIN_LABELED_SEGMENT_AREA = 500
 
 
+def display_image(csi: CloudSegmentationImage):
+    image = csi.get_image_rgb()
+    print(csi.get_image_path(), image.shape, image.dtype)
+    plt.imshow(image)
+    plt.axis('off')
+    plt.show()
+
+
 def display_masks_by_rows(csi: CloudSegmentationImage):
     display(Markdown(f'## Image {csi.get_name()}'))
     for mask in csi.get_all_masks():
