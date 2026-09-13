@@ -1,18 +1,18 @@
-	                       value
+                        value
 ------------------------------
-val_loss (BCE + Dice)	  0.7767
-val_dice (macro)	      0.6114
-val_dice (micro)	      0.6088
-val_iou (macro)	        0.4423
-val_iou (micro)	        0.4376
+val_loss (BCE + Dice)   0.7823
+val_dice (macro)        0.6039
+val_dice (micro)        0.6074
+val_iou (macro)         0.4357
+val_iou (micro)         0.4362
 
 
 
 
-	        dice	iou
-label		
+         dice iou
+label  
 ----------------------
-fish	  0.5502	0.3795
-flower	0.6875	0.5238
-gravel	0.5802	0.4086
-sugar	  0.6277	0.4574
+fish   0.5125  0.3446
+flower 0.6947  0.5322
+gravel 0.5829  0.4114
+sugar  0.6253  0.4548
