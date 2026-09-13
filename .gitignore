@@ -167,8 +167,11 @@ cython_debug/
 # VSCode configuration files
 .vscode/
 
-# MS Office temporary/lock files (e.g. ~$-EDA-Shari.docx)
+# MS Office temporary/lock files
 *~$*
+
+# Drawio temporary/lock files
+*.$*
 
 # Data folder
 /data/
