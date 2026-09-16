@@ -91,7 +91,7 @@ augmented_image_with_segmap = st.session_state.augmented_image_with_segmap
 
 # Display the images
 container_left.image(loaded_image_rgb_with_segmap, caption='Original')
-container_right.image(augmented_image_with_segmap, caption='Augmented')
+container_right.image(augmented_image_with_segmap, caption='Segmentation map')
 
 st.markdown("""
 ### Augmentation pipeline
