@@ -19,12 +19,6 @@ if loaded_image_rgb_with_segmap is None:
     st.error(f'The segmentation map of {csi.get_name()} could not be drawn')
     st.stop()
 
-container_loaded, container_augmented = st.columns(2)
-container_loaded.image(
-    loaded_image_rgb_with_segmap,
-    caption='Original image with Segmentation masks',
-)
-
 pipeline = A.Compose(
     [
         A.HorizontalFlip(p=0.3),
@@ -47,20 +41,19 @@ augmented_csi = CloudSegmentationImage.from_image_and_masks(
     image_path=csi.get_image_path().parent,
 )
 
-
 augmented_image_with_segmap = draw_segmap_on_image(augmented_csi)
 if augmented_image_with_segmap is None:
     st.error(f'The segmentation map of {csi.get_name()} could not be drawn')
     st.stop()
 
-container_augmented.image(
-    augmented_image_with_segmap,
-    caption='Augmented image with Segmentation masks',
-)
-
-st.write('### The cleaned-up labels dataframe')
+st.write('## Augmentation')
 
 st.write(f'### Image {csi.get_name()}')
 st.caption(
     f'{csi.get_image_path()} - {loaded_image_rgb.shape}, {loaded_image_rgb.dtype}'
 )
+
+container_left, container_right = st.columns(2)
+
+container_left.image(loaded_image_rgb_with_segmap, caption='Original')
+container_right.image(augmented_image_with_segmap, caption='Augmented')
