@@ -7,3 +7,6 @@ TRAIN_LABELS_PATH = PROJECT_ROOT / 'data' / 'raw' / 'train.csv'
 
 TRAIN_IMAGES_DIR = PROJECT_ROOT / 'data' / 'raw' / 'train_images'
 TEST_IMAGES_DIR = PROJECT_ROOT / 'data' / 'raw' / 'test_images'
+TEST_IMAGES_FALLBACK_DIR = (
+    PROJECT_ROOT / 'data' / 'presentation' / 'test_images'
+)
