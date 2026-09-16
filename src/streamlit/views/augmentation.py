@@ -92,3 +92,17 @@ augmented_image_with_segmap = st.session_state.augmented_image_with_segmap
 # Display the images
 container_left.image(loaded_image_rgb_with_segmap, caption='Original')
 container_right.image(augmented_image_with_segmap, caption='Augmented')
+
+st.markdown("""
+### Augmentation pipeline
+```python
+pipeline = A.Compose(
+    [
+        A.HorizontalFlip(p=0.3),
+        A.VerticalFlip(p=0.3),
+        A.RandomBrightnessContrast(p=0.8),
+        A.Rotate(p=0.6),
+    ]
+)
+```
+""")
