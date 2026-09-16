@@ -6,3 +6,4 @@ PSPNET_MODEL_PATH = PROJECT_ROOT / 'models' / 'pspnet_resnet34_binary.pth'
 TRAIN_LABELS_PATH = PROJECT_ROOT / 'data' / 'raw' / 'train.csv'
 
 TRAIN_IMAGES_DIR = PROJECT_ROOT / 'data' / 'raw' / 'train_images'
+TEST_IMAGES_DIR = PROJECT_ROOT / 'data' / 'raw' / 'test_images'

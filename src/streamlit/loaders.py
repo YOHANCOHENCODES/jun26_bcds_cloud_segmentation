@@ -12,6 +12,12 @@ def load_labels() -> pd.DataFrame:
     return load_processed_labels(TRAIN_LABELS_PATH)
 
 
+@st.cache_data
+def load_raw_labels() -> pd.DataFrame:
+    """Loads the labels CSV file as it is - without any processing."""
+    return pd.read_csv(TRAIN_LABELS_PATH)
+
+
 @st.cache_resource
 def load_model_pspnet(device: torch.device) -> smp.PSPNet:
     model = smp.PSPNet(encoder_name='resnet34', encoder_weights=None, classes=4)

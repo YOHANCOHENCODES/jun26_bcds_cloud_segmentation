@@ -22,19 +22,22 @@ if segmap_image_rgb is None:
     st.error(f'The segmentation map of {csi.get_name()} could not be drawn')
     st.stop()
 
+
+st.write('### What does RLE encoded mean?')
+st.markdown("""
+> In order to reduce the submission file size, our metric uses *run-length
+> encoding* on the pixel values. Instead of submitting an exhaustive list of
+> indices for your segmentation, you will submit pairs of values that contain a
+> start position and a run length. E.g. `1 3` implies starting at pixel 1 and
+> running a total of 3 pixels (1,2,3). The pixels are numbered from top to
+> bottom, then left to right.
+
+*Source:*
+[Kaggle - Understanding Clouds from Satellite Images](https://www.kaggle.com/competitions/understanding_cloud_organization/overview/evaluation)
+""")
+
+st.write('### Displaying the segmentation masks')
+
 container_left, container_right = st.columns(2)
 container_left.image(loaded_image_rgb, caption='Original')
 container_right.image(segmap_image_rgb, caption='With Masks Overlay')
-
-st.write('### The cleaned-up labels dataframe')
-st.markdown("""
-- It's *impractical* to have the labels attached to the file name
-- We *separated them* into 2 columns, `Image` and `Label`
-""")
-
-st.dataframe(df.head(8))
-
-st.write(f'### Image {csi.get_name()}')
-st.caption(
-    f'{csi.get_image_path()} - {loaded_image_rgb.shape}, {loaded_image_rgb.dtype}'
-)
