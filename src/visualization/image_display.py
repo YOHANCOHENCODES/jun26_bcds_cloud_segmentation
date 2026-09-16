@@ -71,8 +71,8 @@ def display_masks_overlay(csi: CloudSegmentationImage):
 def draw_segmap_on_image(
     csi: CloudSegmentationImage,
     label_colors: dict[str, tuple[int, int, int]] | None = None,
-    alpha: float = 0.5,
-    draw_label_names: bool = False,
+    alpha: float = 0.4,
+    draw_label_names: bool = True,
 ) -> np.ndarray | None:
     """Overlay the combined segmentation map of a `CloudSegmentationImage` on
     its image.
