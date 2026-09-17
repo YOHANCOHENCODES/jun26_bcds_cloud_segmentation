@@ -3,9 +3,9 @@ from config import FIGURES_DIR
 import streamlit as st
 
 # This page only presents results - it does not run the U-Net. The trained
-# Keras model stays out of the app on purpose: TensorFlow next to torch does
-# not fit into the 1 GB the deployment has, so the plots are the ones that
-# were exported to `reports/figures/` during training.
+# Keras model stays out of the app on purpose: it would pull TensorFlow in
+# next to torch, for plots that were already made during training and are
+# sitting in `reports/figures/`. So they are shown from there.
 
 st.write('## U-Net model results')
 
