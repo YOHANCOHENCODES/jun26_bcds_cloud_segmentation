@@ -4,6 +4,7 @@ st.set_page_config(page_title='Cloud Segmentation', layout='wide')
 
 pg = st.navigation(
     [
+        st.Page('views/eda.py', title='EDA'),
         st.Page('views/input_data_raw.py', title='Input data (raw)'),
         st.Page('views/input_data_cleaned.py', title='Input data (cleaned)'),
         st.Page('views/segmentation_masks.py', title='Segmentation masks'),
