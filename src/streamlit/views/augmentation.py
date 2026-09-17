@@ -1,6 +1,10 @@
 import albumentations as A
 from config import TRAIN_IMAGES_DIR
-from loaders import load_labels
+from loaders import (
+    first_row_id,
+    load_train_image_names,
+    load_train_labels,
+)
 
 import streamlit as st
 from src.data.cloud_segmentation_image import CloudSegmentationImage
@@ -17,7 +21,7 @@ pipeline = A.Compose(
 )
 
 
-def augment(image_rgb, image_masks):
+def augment(csi: CloudSegmentationImage, image_rgb, image_masks):
     # Call ('apply') the Augmentation pipeline
     transformed_data = pipeline(image=image_rgb, masks=image_masks)
 
@@ -42,12 +46,15 @@ def augment(image_rgb, image_masks):
     return augmented_image_with_segmap
 
 
-# Load the labels
-df = load_labels()
+# Create the Streamlit page title
+st.write('## Augmentation')
 
-# Create a CloudSegmentationImage from of the picture that is 'linked' to
-# rowId=4 in the labels DataFrame
-csi = CloudSegmentationImage(df, 4, TRAIN_IMAGES_DIR)
+train_labels_df = load_train_labels()
+image_name = st.selectbox('Training image', load_train_image_names())
+
+csi = CloudSegmentationImage(
+    train_labels_df, first_row_id(train_labels_df, image_name), TRAIN_IMAGES_DIR
+)
 
 # Get the rgb of the image - and also its masks
 loaded_image_rgb = csi.get_image_rgb()
@@ -62,9 +69,6 @@ if loaded_image_rgb_with_segmap is None:
     st.error(f'The segmentation map of {csi.get_name()} could not be drawn')
     st.stop()
 
-# Create the Streamlit page title
-st.write('## Augmentation')
-
 st.write(f'### Image {csi.get_name()}')
 st.caption(
     f'{csi.get_image_path()} - {loaded_image_rgb.shape}, {loaded_image_rgb.dtype}'
@@ -74,17 +78,15 @@ st.caption(
 # augmented  ones at the right
 container_left, container_right = st.columns(2)
 
-# Run the augmentation once on first load, then again on every button click -
-# the pipeline uses random probabilities, so each run can produce a different
-# result
-if 'augmented_image_with_segmap' not in st.session_state:
+# Run the augmentation once on first load and again on every button click - the
+# pipeline uses random probabilities, so each run can produce a different
+# result. The image name is kept alongside it, so that picking another image
+# augments that one instead of showing the previous result.
+regenerate = st.button('Regenerate augmentation')
+if regenerate or st.session_state.get('augmented_image_name') != image_name:
+    st.session_state.augmented_image_name = image_name
     st.session_state.augmented_image_with_segmap = augment(
-        loaded_image_rgb, loaded_image_masks
-    )
-
-if st.button('Regenerate augmentation'):
-    st.session_state.augmented_image_with_segmap = augment(
-        loaded_image_rgb, loaded_image_masks
+        csi, loaded_image_rgb, loaded_image_masks
     )
 
 augmented_image_with_segmap = st.session_state.augmented_image_with_segmap

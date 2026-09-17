@@ -2,11 +2,7 @@ import cv2
 import numpy as np
 import torch
 from config import TEST_IMAGES_DIR
-from loaders import (
-    load_model_pspnet,
-    load_test_image_names,
-    load_test_images_dir,
-)
+from loaders import load_model_pspnet, load_test_image_names
 
 import streamlit as st
 from src.data.cloud_segmentation_image import (
@@ -64,15 +60,13 @@ problem - each of the 4 outputs is an independent binary mask, thresholded at
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 model = load_model_pspnet(device)
 
-# Pick an image from the directory the test images come from - after a
-# deployment that is the small set committed for the presentation, because
-# `data/` itself is not part of the repository
-test_images_dir = load_test_images_dir()
+# Pick one of the test images shipped with the app. They are unlabeled, so
+# there is nothing to compare the prediction against - which is exactly the
+# point of this page
+test_image_names = load_test_image_names()
 
-if test_images_dir is not None:
-    selected_name = st.selectbox(
-        'Test image', load_test_image_names(test_images_dir)
-    )
+if test_image_names:
+    selected_name = st.selectbox('Test image', test_image_names)
 else:
     selected_name = None
     st.info(
@@ -90,7 +84,7 @@ if uploaded_file is not None:
     image_bytes = uploaded_file.getvalue()
 elif selected_name is not None:
     image_name = selected_name
-    image_bytes = (test_images_dir / selected_name).read_bytes()
+    image_bytes = (TEST_IMAGES_DIR / selected_name).read_bytes()
 else:
     st.stop()
 
@@ -112,7 +106,7 @@ csi_predicted = CloudSegmentationImage.from_image_and_masks(
     image_name=image_name,
     # Bookkeeping only: the image itself is handed over above, so this path is
     # never read from - and an upload has no directory of its own anyway
-    image_path=test_images_dir or TEST_IMAGES_DIR,
+    image_path=TEST_IMAGES_DIR,
 )
 
 predicted_image_rgb = draw_segmap_on_image(csi_predicted)
