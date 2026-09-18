@@ -300,9 +300,7 @@ def _s213_class_distribution() -> None:
                 ),
             },
         )
-        st.caption(
-            f'Largest / smallest ratio: {masks.max() / masks.min():.2f}'
-        )
+        st.caption(f'Largest / smallest ratio: {masks.max() / masks.min():.2f}')
 
     st.markdown("""
 **Sugar** has the most annotated masks, **Flower** the fewest. The imbalance is **moderate**
@@ -707,7 +705,7 @@ def render(navigation: str = 'tabs') -> None:
         `'tabs'` puts 2.1 / 2.2 / 2.3 on three tabs (good for a live talk),
         `'flow'` renders everything on one scrolling page (good for reading).
     """
-    st.title('2 - Exploratory Data Analysis and Data Preparation')
+    st.title('Exploratory Data Analysis and Data Preparation')
     st.markdown(
         '**From 22,184 RLE strings to batches of `[8, 3, 384, 576]` images with '
         '`[8, 4, 384, 576]` targets.** This chapter covers what the data looks like, what had to be '
