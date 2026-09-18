@@ -16,8 +16,20 @@ st.markdown("""
 st.write('### Distribution of the cloud labels')
 
 st.image(
-    FIGURES_DIR / 'distribution-of-cloud-labels.png',
-    caption='How often each cloud type appears in the training labels',
+    FIGURES_DIR / 'mahsa_unet_architecture.png',
+    caption='UNet architecture',
+    width=700,
+)
+
+st.image(
+    FIGURES_DIR / 'mahsa_loss_and_dice_plots.png',
+    caption='Loss and Dice plots',
+    width=700,
+)
+
+st.image(
+    FIGURES_DIR / 'mahsa_prediction_on_test_images.png',
+    caption='Predictions on test images',
     width=700,
 )
 
