@@ -1,0 +1,11 @@
+# Streamlit configuration for the presentation app.
+#
+# Streamlit reads this file from the directory the app is started in, which is
+# the repository root - locally as well as on Streamlit Community Cloud.
+
+[theme]
+# Root font size in pixels; Streamlit's default is 16. Everything else is
+# defined relative to it - body text, headings, code blocks, widget labels and
+# captions - so this single value scales the whole app and keeps all pages
+# consistent. 24 is 1.5x the default, chosen for readability on a projector.
+baseFontSize = 24
