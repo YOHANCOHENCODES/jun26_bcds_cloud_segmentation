@@ -6,11 +6,12 @@ from config import (
     PSPNET_MODEL_PATH,
     TEST_IMAGES_DIR,
     TRAIN_LABELS_PATH,
+    UNET_RESNET50_MODEL_PATH,
 )
 
 import streamlit as st
 from src.data.labels import load_processed_labels
-from src.models.predict_model import load_pspnet
+from src.models.predict_model import load_pspnet, load_unet
 
 
 @st.cache_data
@@ -74,6 +75,12 @@ def first_row_id(labels_df: pd.DataFrame, image_name: str) -> int:
 def load_model_pspnet(device: torch.device) -> torch.nn.Module:
     """Rebuilds the PSPNet and loads the trained weights into it."""
     return load_pspnet(PSPNET_MODEL_PATH, device)
+
+
+@st.cache_resource
+def load_model_unet_resnet50(device: torch.device) -> torch.nn.Module:
+    """Rebuilds the U-Net (ResNet50 encoder) and loads the trained weights into it."""
+    return load_unet(UNET_RESNET50_MODEL_PATH, device)
 
 
 @st.cache_data

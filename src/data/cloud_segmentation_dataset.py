@@ -1,4 +1,5 @@
 from pathlib import Path
+from typing import Optional, Tuple
 
 import albumentations as A
 import numpy as np
@@ -18,7 +19,7 @@ DEFAULT_ENCODER_WEIGHTS = 'imagenet'
 def get_normalization(
     encoder_name: str = DEFAULT_ENCODER_NAME,
     encoder_weights: str = DEFAULT_ENCODER_WEIGHTS,
-) -> tuple[torch.Tensor, torch.Tensor]:
+) -> Tuple[torch.Tensor, torch.Tensor]:
     """Return the `(mean, std)` an image must be normalized with before it is
     fed into `encoder_name`, shaped `(C, 1, 1)` so they broadcast over a
     `(C, H, W)` image tensor.
@@ -55,8 +56,8 @@ class CloudSegmentationDataset(Dataset):
         self,
         labels_df: pd.DataFrame,
         image_dir: Path,
-        pipeline: A.Compose | None = None,
-        image_shape: tuple[int, int] = (384, 576),
+        pipeline: Optional[A.Compose] = None,
+        image_shape: Tuple[int, int] = (384, 576),
         normalize: bool = True,
         encoder_name: str = DEFAULT_ENCODER_NAME,
         encoder_weights: str = DEFAULT_ENCODER_WEIGHTS,
@@ -81,7 +82,7 @@ class CloudSegmentationDataset(Dataset):
     def __len__(self) -> int:
         return len(self.row_ids)
 
-    def __getitem__(self, idx: int) -> tuple[torch.Tensor, torch.Tensor]:
+    def __getitem__(self, idx: int) -> Tuple[torch.Tensor, torch.Tensor]:
         row_id = self.row_ids[idx]
         csi = CloudSegmentationImage(
             self.labels_df, row_id, self.image_dir, self.image_shape
@@ -102,6 +103,7 @@ class CloudSegmentationDataset(Dataset):
 
         image_tensor = torch.from_numpy(np.ascontiguousarray(image))
         image_tensor = image_tensor.permute(2, 0, 1).float() / 255.0
+
         if self.normalize:
             image_tensor = (image_tensor - self.mean) / self.std
 

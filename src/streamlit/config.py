@@ -27,6 +27,9 @@ TEST_IMAGES_DIR = PRESENTATION_DIR / 'test_images'
 
 PSPNET_MODEL_PATH = PROJECT_ROOT / 'models' / 'pspnet_resnet34_binary.pth'
 
+# Adjust the filename to whatever you name the .pth file once it's in models/
+UNET_RESNET50_MODEL_PATH = PROJECT_ROOT / 'models' / 'unet_resnet50.pth'
+
 # Plots and diagrams that were exported for the report. Pages that only show
 # results rather than computing them take their images from here.
 FIGURES_DIR = PROJECT_ROOT / 'reports' / 'figures'

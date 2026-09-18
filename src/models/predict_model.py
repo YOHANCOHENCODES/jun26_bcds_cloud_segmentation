@@ -46,6 +46,32 @@ def load_pspnet(
     return model
 
 
+# Architecture the U-Net checkpoint was trained with (see load_unet below).
+UNET_ENCODER = 'resnet50'
+
+
+def load_unet(
+    path: Path,
+    device: torch.device,
+    encoder_name: str = UNET_ENCODER,
+    classes: int = NUM_CLASSES,
+) -> torch.nn.Module:
+    """Rebuild the U-Net (ResNet50 encoder) architecture and load the trained
+    weights that `torch.save(model.state_dict(), path)` wrote to `path` into
+    it. Mirrors `load_pspnet`, but for U-Net + ResNet50: same idea, different
+    architecture and encoder. `encoder_weights` stays `None` for the same
+    reason as in `load_pspnet` - the checkpoint already carries the
+    fine-tuned weights.
+    """
+    model = smp.Unet(
+        encoder_name=encoder_name, encoder_weights=None, classes=classes
+    )
+    model.load_state_dict(torch.load(path, map_location=device))
+    model = model.to(device)
+    model.eval()
+    return model
+
+
 def predict_mask_stack(
     model: torch.nn.Module,
     image_rgb: np.ndarray,

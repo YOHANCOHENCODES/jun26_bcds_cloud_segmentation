@@ -2,6 +2,7 @@ import cv2
 import matplotlib.pyplot as plt
 import numpy as np
 from IPython.display import Markdown, display
+from typing import Dict, Optional, Tuple
 
 from src.data.cloud_segmentation_image import (
     LABEL_CLASS_IDS,
@@ -9,7 +10,7 @@ from src.data.cloud_segmentation_image import (
 )
 
 # The RGB colors used to draw each cloud label onto an image
-LABEL_COLORS: dict[str, tuple[int, int, int]] = {
+LABEL_COLORS: Dict[str, Tuple[int, int, int]] = {
     'fish': (255, 0, 0),
     'flower': (0, 255, 0),
     'gravel': (0, 0, 255),
@@ -70,10 +71,10 @@ def display_masks_overlay(csi: CloudSegmentationImage):
 
 def draw_segmap_on_image(
     csi: CloudSegmentationImage,
-    label_colors: dict[str, tuple[int, int, int]] | None = None,
+    label_colors: Optional[Dict[str, Tuple[int, int, int]]] = None,
     alpha: float = 0.4,
     draw_label_names: bool = True,
-) -> np.ndarray | None:
+) -> Optional[np.ndarray]:
     """Overlay the combined segmentation map of a `CloudSegmentationImage` on
     its image.
 
