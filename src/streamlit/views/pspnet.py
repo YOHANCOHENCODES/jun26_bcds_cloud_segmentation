@@ -24,6 +24,18 @@ IMAGE_SHAPE = (384, 576)
 
 LABEL_NAMES = list(LABEL_CLASS_IDS.keys())
 
+# How the model shown on this page was built. `classes=4` is what makes it a
+# multi-label model: one output channel per cloud type.
+MODEL_SNIPPET = """import segmentation_models_pytorch as smp
+
+model_pspnet = smp.PSPNet(
+    encoder_name='resnet34', encoder_weights='imagenet', classes=4
+)
+
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+model_pspnet = model_pspnet.to(device)
+"""
+
 
 def decode_image_rgb(image_bytes: bytes) -> Optional[np.ndarray]:
     """Decode the bytes of an image file into an RGB array of IMAGE_SHAPE."""
@@ -72,18 +84,18 @@ st.write('## PSPNet and its results')
 # """)
 
 
-tab_properties, tab_architecture, tab_library = st.tabs(
-    ['PSPNet properties', 'Architecture', 'The library: smp']
-)
+tab_properties, tab_library = st.tabs(['PSPNet properties', 'The library: smp'])
 
 with tab_properties:
-    st.markdown("""
+    container_text, container_diagram = st.columns(2)
+
+    container_text.markdown("""
 - **The Pyramid Pooling Module is the idea of the network.**
-    - It pools the feature map at four scales at once - `1×1`, `2×2`, `3×3` and `6×6`
+    - It pools the feature map at four scales at once - `1x1`, `2x2`, `3x3` and `6x6`
     - The coarsest level is a global pooling over the whole image
     - The finer ones split it into sub-regions
 - **Every level is brought back to a common shape.**
-    - Each one is reduced by a `1×1` convolution
+    - Each one is reduced by a `1x1` convolution
     - then bilinearly upsampled to the size of the feature map
     - and finally all of them are concatenated
 - **This gives the network a global prior of the scene.**
@@ -101,7 +113,6 @@ the original paper - and
 [GeeksforGeeks: PSPNet - Pyramid Scene Parsing Network for Image Segmentation](https://www.geeksforgeeks.org/computer-vision/pspnet-pyramid-scene-parsing-network-for-image-segmentation/)*
 """)
 
-with tab_architecture:
     # The SVG export of `06-model-pspnet-rosner-architecture.drawio`, not the
     # PNG: `st.image()` resamples a raster image down to the requested width
     # before sending it, which turns the thin lines and the small labels of the
@@ -111,13 +122,24 @@ with tab_architecture:
     #   drawio --export --format svg --svg-theme light --border 10 \
     #       --output reports/figures/rosner-pspnet-architecture.svg \
     #       reports/figures/06-model-pspnet-rosner-architecture.drawio
-    st.image(
+    #
+    # The diagram is portrait (860 x 1142), so a width of 520 makes it about as
+    # tall as the bullet list next to it.
+    container_diagram.image(
         FIGURES_DIR / 'rosner-pspnet-architecture.svg',
-        width=800,
+        width=520,
     )
 
 with tab_library:
-    st.markdown('TODO')
+    st.markdown("""
+- **The whole architecture comes from one call.** `smp` assembles the pyramid pooling module and
+  the encoder; nothing of it is written by hand.
+- **`encoder_weights='imagenet'`** starts the ResNet-34 encoder pre-trained, so the training only
+  has to adapt it to satellite images instead of learning features from scratch.
+- **`classes=4`** gives one output channel per cloud type - this is what makes the model
+  multi-label.
+""")
+    st.code(MODEL_SNIPPET, language='python')
 
 st.divider()
 
