@@ -7,24 +7,16 @@ import streamlit as st
 # next to torch, for plots that were already made during training and are
 # sitting in `reports/figures/`. So they are shown from there.
 
-st.write('## U-Net model')
+# st.write('## U-Net model')
 
 # st.markdown("""
 # *TODO: Text about the architecture and the training setup.*
 # """)
 
-# st.write('### Distribution of the cloud labels')
-
-# st.image(
-#     FIGURES_DIR / 'mahsa_unet_architecture.png',
-#     caption='UNet architecture',
-#     width=1500,
-# )
-
 st.markdown(
     """
     <p style="
-        font-size:46px;
+        font-size:50px;
         font-weight:600;
         text-align:left;
     ">
@@ -39,9 +31,22 @@ st.image(
     width=1500,
 )
 
+
+st.markdown(
+    """
+    <p style="
+        font-size:50px;
+        font-weight:600;
+        text-align:left;
+    ">
+        Model's validation plots
+    </p>
+    """,
+    unsafe_allow_html=True,
+)
+
 st.image(
-    FIGURES_DIR / 'mahsa_loss_and_dice_plots.png',
-    caption='Loss and Dice plots',
+    FIGURES_DIR / "mahsa_loss_and_dice_plots.png",
     width=1500,
 )
 
