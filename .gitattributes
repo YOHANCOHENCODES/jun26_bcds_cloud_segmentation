@@ -1,7 +1,7 @@
 * text=auto
-
 *.py text eol=lf
 *.ipynb text eol=lf
 *.md text eol=lf
 *.txt text eol=lf
 *.csv text eol=lf
+models/unet_resnet50.pth filter=lfs diff=lfs merge=lfs -text
