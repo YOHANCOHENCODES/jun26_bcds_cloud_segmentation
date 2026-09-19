@@ -1,9 +1,9 @@
+from typing import Optional
+
 import cv2
 import numpy as np
 import torch
-from typing import Optional
-
-from config import TEST_IMAGES_DIR
+from config import FIGURES_DIR, TEST_IMAGES_DIR
 from loaders import load_model_pspnet, load_test_image_names
 
 import streamlit as st
@@ -17,7 +17,6 @@ from src.models.predict_model import (
     predict_mask_stack,
 )
 from src.visualization.image_display import draw_segmap_on_image
-
 
 # The image size the model was trained on. An uploaded image is resized to it,
 # because the normalization and the encoder expect exactly this input.
@@ -59,23 +58,76 @@ def predict_masks(image_rgb: np.ndarray, _model, _device) -> np.ndarray:
     )
 
 
-st.write('## PSPNet predictions on unseen images')
+st.write('## PSPNet and its results')
 
-st.markdown(f"""
-The trained PSPNet (`resnet34` encoder) is applied to an image from the
-**test** directory. Those images have *no labels*, so there is nothing to
-decode a mask from: the masks below are what the model itself predicts.
+# st.markdown(f"""
+# The trained PSPNet (`resnet34` encoder) is applied to an image from the
+# **test** directory. Those images have *no labels*, so there is nothing to
+# decode a mask from: the masks below are what the model itself predicts.
 
-A pixel can belong to several cloud types at once, so this is a **multi-label**
-problem - each of the 4 outputs is an independent binary mask, thresholded at
-`0.5`. *Detected* means that the predicted mask of a cloud type covers at least
-{MIN_DETECTION_AREA} pixels.
+# A pixel can belong to several cloud types at once, so this is a **multi-label**
+# problem - each of the 4 outputs is an independent binary mask, thresholded at
+# `0.5`. *Detected* means that the predicted mask of a cloud type covers at least
+# {MIN_DETECTION_AREA} pixels.
+# """)
+
+
+tab_properties, tab_architecture, tab_library = st.tabs(
+    ['PSPNet properties', 'Architecture', 'The library: smp']
+)
+
+with tab_properties:
+    st.markdown("""
+- **The Pyramid Pooling Module is the idea of the network.**
+    - It pools the feature map at four scales at once - `1×1`, `2×2`, `3×3` and `6×6`
+    - The coarsest level is a global pooling over the whole image
+    - The finer ones split it into sub-regions
+- **Every level is brought back to a common shape.**
+    - Each one is reduced by a `1×1` convolution
+    - then bilinearly upsampled to the size of the feature map
+    - and finally all of them are concatenated
+- **This gives the network a global prior of the scene.**
+    - It reads the fine detail and the overall context of an image at the same time
+    - instead of deciding pixel by pixel from a local neighbourhood
+- **The backbone is a pre-trained ResNet with dilated convolutions.**
+    - Dilation widens the receptive field without adding parameters
+    - so more context reaches the pooling module
+- **That is the difference to an FCN.**
+    - An FCN works at a single scale
+    - PSPNet combines the local and the global view
+
+*Sources: Zhao et al., [Pyramid Scene Parsing Network](https://arxiv.org/abs/1612.01105), CVPR 2017 -
+the original paper - and
+[GeeksforGeeks: PSPNet - Pyramid Scene Parsing Network for Image Segmentation](https://www.geeksforgeeks.org/computer-vision/pspnet-pyramid-scene-parsing-network-for-image-segmentation/)*
 """)
 
+with tab_architecture:
+    # The SVG export of `06-model-pspnet-rosner-architecture.drawio`, not the
+    # PNG: `st.image()` resamples a raster image down to the requested width
+    # before sending it, which turns the thin lines and the small labels of the
+    # diagram into mush. An .svg path is inlined as a data URI untouched, so
+    # the width below only scales the vector and costs no sharpness.
+    #
+    #   drawio --export --format svg --svg-theme light --border 10 \
+    #       --output reports/figures/rosner-pspnet-architecture.svg \
+    #       reports/figures/06-model-pspnet-rosner-architecture.drawio
+    st.image(
+        FIGURES_DIR / 'rosner-pspnet-architecture.svg',
+        width=800,
+    )
 
-device = torch.device(
-    'cuda' if torch.cuda.is_available() else 'cpu'
-)
+with tab_library:
+    st.markdown('TODO')
+
+st.divider()
+
+# --------------------------------------------------------------------------- #
+# The model, live
+# --------------------------------------------------------------------------- #
+
+st.header('Live example')
+
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 model = load_model_pspnet(device)
 
@@ -121,9 +173,7 @@ image_rgb = decode_image_rgb(image_bytes)
 
 
 if image_rgb is None:
-    st.error(
-        f'The image {image_name} could not be read'
-    )
+    st.error(f'The image {image_name} could not be read')
     st.stop()
 
 
@@ -153,25 +203,17 @@ csi_predicted = CloudSegmentationImage.from_image_and_masks(
 )
 
 
-predicted_image_rgb = draw_segmap_on_image(
-    csi_predicted
-)
+predicted_image_rgb = draw_segmap_on_image(csi_predicted)
 
 
 if predicted_image_rgb is None:
-    st.error(
-        f'The segmentation map of {image_name} could not be drawn'
-    )
+    st.error(f'The segmentation map of {image_name} could not be drawn')
     st.stop()
 
 
-st.write(
-    f'### Image {image_name}'
-)
+st.write(f'### Image {image_name}')
 
-st.write(
-    f'**Detected:** {", ".join(labels) if labels else "none"}'
-)
+st.write(f'**Detected:** {", ".join(labels) if labels else "none"}')
 
 
 container_left, container_right = st.columns(2)
