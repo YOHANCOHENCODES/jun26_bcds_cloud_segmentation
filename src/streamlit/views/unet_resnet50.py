@@ -24,8 +24,7 @@ from src.models.predict_model import (
 from src.visualization.image_display import draw_segmap_on_image
 
 
-# The image size the model was trained on. An uploaded image is resized to
-# it, because the normalization and the encoder expect exactly this input.
+# The image size the model was trained on.
 IMAGE_SHAPE = (384, 576)
 
 LABEL_NAMES = list(LABEL_CLASS_IDS.keys())
@@ -65,20 +64,91 @@ def predict_masks(image_rgb: np.ndarray, _model, _device) -> np.ndarray:
     )
 
 
-st.write('## U-Net (ResNet50) predictions')
+# ============================================================
+# PAGE HEADER
+# ============================================================
 
-st.markdown(f"""
-The trained U-Net (`resnet50` encoder) is applied to a satellite image. Pick
-an image from the **test** set (unlabeled) or the **train** set below, or
-upload your own - the masks shown are always what the model itself predicts,
-not a ground-truth comparison.
+st.write('## U-Net (ResNet50) Predictions')
 
-A pixel can belong to several cloud types at once, so this is a **multi-label**
-problem - each of the 4 outputs is an independent binary mask, thresholded at
-`0.5`. *Detected* means that the predicted mask of a cloud type covers at least
-{MIN_DETECTION_AREA} pixels.
+
+# ============================================================
+# MODEL INFORMATION
+# ============================================================
+
+st.markdown("""
+### 🏗 Model Architecture
+
+- **U-Net + ResNet50 encoder**
+- ImageNet-pretrained weights
+- Skip connections
+- 4 output classes: **Fish, Flower, Gravel, Sugar**
+- **Sigmoid activation → Multi-label segmentation**
 """)
 
+
+col1, col2, col3 = st.columns(3)
+
+
+with col1:
+    st.markdown("""
+    ### ⚙️ Training
+
+    - BCE + Dice Loss
+    - AdamW
+    - Learning rate: **8 × 10⁻⁵**
+    - Up to **25 epochs**
+    - Early stopping
+    """)
+
+
+with col2:
+    st.markdown("""
+    ### 📊 Validation Results
+
+    **Macro Dice**
+
+    # 0.6118
+
+    **Mean IoU**
+
+    # 0.4432
+    """)
+
+
+with col3:
+    st.markdown("""
+    ### 🔍 Key Finding
+
+    Occasional high-confidence
+    **false positives** were observed.
+
+    **99.1%** of FP cases also
+    contained ≥1 correct prediction.
+    """)
+
+
+st.markdown("---")
+
+
+# ============================================================
+# PREDICTION INFORMATION
+# ============================================================
+
+st.markdown("""
+### 🔎 Prediction
+
+Select an image from the **test** or **train** set, or upload your own image.
+
+The masks shown below are the model's predictions, not ground truth.
+
+A pixel can belong to several cloud types at once, so each of the four
+outputs is treated as an independent binary mask and thresholded at **0.5**.
+""")
+
+
+# ============================================================
+# DEVICE & MODEL
+# ============================================================
 
 device = torch.device(
     'cuda' if torch.cuda.is_available() else 'cpu'
@@ -86,6 +156,10 @@ device = torch.device(
 
 model = load_model_unet_resnet50(device)
 
+
+# ============================================================
+# IMAGE SOURCE
+# ============================================================
 
 image_source = st.radio(
     'Image source',
@@ -101,6 +175,10 @@ else:
     image_names = load_train_image_names()
     images_dir = TRAIN_IMAGES_DIR
 
+
+# ============================================================
+# IMAGE SELECTION
+# ============================================================
 
 if image_names:
     selected_name = st.selectbox(
@@ -120,7 +198,7 @@ uploaded_file = st.file_uploader(
 )
 
 
-# An uploaded image wins over the selected one - it is the more recent choice
+# An uploaded image wins over the selected one.
 if uploaded_file is not None:
     image_name = uploaded_file.name
     image_bytes = uploaded_file.getvalue()
@@ -133,6 +211,10 @@ else:
     st.stop()
 
 
+# ============================================================
+# IMAGE DECODING
+# ============================================================
+
 image_rgb = decode_image_rgb(image_bytes)
 
 
@@ -143,11 +225,20 @@ if image_rgb is None:
     st.stop()
 
 
+# ============================================================
+# MODEL PREDICTION
+# ============================================================
+
 mask_stack = predict_masks(
     image_rgb,
     model,
     device,
 )
+
+
+# ============================================================
+# DETECTED LABELS
+# ============================================================
 
 labels = detected_labels(
     mask_stack,
@@ -155,12 +246,16 @@ labels = detected_labels(
 )
 
 
+# ============================================================
+# CREATE SEGMENTATION IMAGE
+# ============================================================
+
 csi_predicted = CloudSegmentationImage.from_image_and_masks(
     image_rgb=image_rgb,
     mask_stack=mask_stack,
     image_name=image_name,
-    # Bookkeeping only: the image itself is handed over above, so this path
-    # is never read from - and an upload has no directory of its own anyway.
+    # Bookkeeping only: the image itself is handed over above,
+    # so this path is never read from.
     image_path=images_dir,
 )
 
@@ -177,9 +272,14 @@ if predicted_image_rgb is None:
     st.stop()
 
 
+# ============================================================
+# DISPLAY RESULTS
+# ============================================================
+
 st.write(
     f'### Image {image_name}'
 )
+
 
 st.write(
     f'**Detected:** {", ".join(labels) if labels else "none"}'
