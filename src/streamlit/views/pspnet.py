@@ -92,7 +92,7 @@ with tab_properties:
     container_text.markdown("""
 - **The Pyramid Pooling Module is the idea of the network.**
     - It pools the feature map at four scales at once - `1x1`, `2x2`, `3x3` and `6x6`
-    - The coarsest level is a global pooling over the whole image
+    - The lowest-resolution level uses global pooling over the whole image
     - The finer ones split it into sub-regions
 - **Every level is brought back to a common shape.**
     - Each one is reduced by a `1x1` convolution
