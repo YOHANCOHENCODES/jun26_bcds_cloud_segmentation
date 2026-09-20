@@ -176,4 +176,4 @@ cython_debug/
 # Data folder
 /data/raw/
 
-/Liora-MLE-Training/
+/models/unet_resnet50.pth
