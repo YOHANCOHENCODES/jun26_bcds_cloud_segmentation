@@ -70,7 +70,7 @@ def predict_masks(image_rgb: np.ndarray, _model, _device) -> np.ndarray:
     )
 
 
-st.write('## PSPNet and its results')
+st.title('PSPNet and its results')
 
 # st.markdown(f"""
 # The trained PSPNet (`resnet34` encoder) is applied to an image from the
@@ -123,7 +123,7 @@ Segmentation](https://www.geeksforgeeks.org/computer-vision/pspnet-pyramid-scene
     # tall as the bullet list next to it.
     container_diagram.image(
         FIGURES_DIR / 'rosner-pspnet-architecture.svg',
-        width=520,
+        width=700,
     )
 
 with tab_library:
