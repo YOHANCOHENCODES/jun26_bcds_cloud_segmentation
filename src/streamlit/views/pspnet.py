@@ -90,27 +90,23 @@ with tab_properties:
     container_text, container_diagram = st.columns(2)
 
     container_text.markdown("""
-- **The Pyramid Pooling Module is the idea of the network.**
-    - It pools the feature map at four scales at once - `1x1`, `2x2`, `3x3` and `6x6`
-    - The lowest-resolution level uses global pooling over the whole image
-    - The finer ones split it into sub-regions
-- **Every level is brought back to a common shape.**
-    - Each one is reduced by a `1x1` convolution
-    - then bilinearly upsampled to the size of the feature map
-    - and finally all of them are concatenated
-- **This gives the network a global prior of the scene.**
-    - It reads the fine detail and the overall context of an image at the same time
-    - instead of deciding pixel by pixel from a local neighbourhood
-- **The backbone is a pre-trained ResNet with dilated convolutions.**
-    - Dilation widens the receptive field without adding parameters
-    - so more context reaches the pooling module
-- **That is the difference to an FCN.**
-    - An FCN works at a single scale
-    - PSPNet combines the local and the global view
+- The problem it solves: A **conventional segmentation network** labels each
+  pixel mainly from a **small local neighbourhood**. It sees a small area, not
+  the whole scene.
+- The **Pyramid Pooling Module** looks at **several scales at once.** It pools
+  the feature map over the **whole image** and over grids of **2x2**, **3x3**,
+  and **6x6** regions.
+- **Every pixel gets access to all four scales.** The results are upsampled to
+  the feature-map size and combined.
+- This **adds global context** to the local pixel information.
+- This is useful for cloud segmentation: Fish, Flower, Gravel, and Sugar are
+  mainly **distinguished by their large-scale patterns** rather than local pixel
+  appearance.
 
-*Sources: Zhao et al., [Pyramid Scene Parsing Network](https://arxiv.org/abs/1612.01105), CVPR 2017 -
-the original paper - and
-[GeeksforGeeks: PSPNet - Pyramid Scene Parsing Network for Image Segmentation](https://www.geeksforgeeks.org/computer-vision/pspnet-pyramid-scene-parsing-network-for-image-segmentation/)*
+*Sources: Zhao et al., [Pyramid Scene Parsing
+Network](https://arxiv.org/abs/1612.01105), CVPR 2017 - the original paper - and
+[GeeksforGeeks: PSPNet - Pyramid Scene Parsing Network for Image
+Segmentation](https://www.geeksforgeeks.org/computer-vision/pspnet-pyramid-scene-parsing-network-for-image-segmentation/)*
 """)
 
     # The SVG export of `06-model-pspnet-rosner-architecture.drawio`, not the
