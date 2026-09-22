@@ -1,9 +1,9 @@
+from typing import Optional
+
 import cv2
 import numpy as np
 import torch
-from typing import Optional
-
-from config import TEST_IMAGES_DIR
+from config import FIGURES_DIR, TEST_IMAGES_DIR
 from loaders import load_model_pspnet, load_test_image_names
 
 import streamlit as st
@@ -18,12 +18,23 @@ from src.models.predict_model import (
 )
 from src.visualization.image_display import draw_segmap_on_image
 
-
 # The image size the model was trained on. An uploaded image is resized to it,
 # because the normalization and the encoder expect exactly this input.
 IMAGE_SHAPE = (384, 576)
 
 LABEL_NAMES = list(LABEL_CLASS_IDS.keys())
+
+# How the model shown on this page was built. `classes=4` is what makes it a
+# multi-label model: one output channel per cloud type.
+MODEL_SNIPPET = """import segmentation_models_pytorch as smp
+
+model_pspnet = smp.PSPNet(
+    encoder_name='resnet34', encoder_weights='imagenet', classes=4
+)
+
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+model_pspnet = model_pspnet.to(device)
+"""
 
 
 def decode_image_rgb(image_bytes: bytes) -> Optional[np.ndarray]:
@@ -59,23 +70,82 @@ def predict_masks(image_rgb: np.ndarray, _model, _device) -> np.ndarray:
     )
 
 
-st.write('## PSPNet predictions on unseen images')
+st.title('PSPNet and its results')
 
-st.markdown(f"""
-The trained PSPNet (`resnet34` encoder) is applied to an image from the
-**test** directory. Those images have *no labels*, so there is nothing to
-decode a mask from: the masks below are what the model itself predicts.
+# st.markdown(f"""
+# The trained PSPNet (`resnet34` encoder) is applied to an image from the
+# **test** directory. Those images have *no labels*, so there is nothing to
+# decode a mask from: the masks below are what the model itself predicts.
 
-A pixel can belong to several cloud types at once, so this is a **multi-label**
-problem - each of the 4 outputs is an independent binary mask, thresholded at
-`0.5`. *Detected* means that the predicted mask of a cloud type covers at least
-{MIN_DETECTION_AREA} pixels.
+# A pixel can belong to several cloud types at once, so this is a **multi-label**
+# problem - each of the 4 outputs is an independent binary mask, thresholded at
+# `0.5`. *Detected* means that the predicted mask of a cloud type covers at least
+# {MIN_DETECTION_AREA} pixels.
+# """)
+
+
+tab_properties, tab_library = st.tabs(['PSPNet properties', 'The library: smp'])
+
+with tab_properties:
+    container_text, container_diagram = st.columns(2)
+
+    container_text.markdown("""
+- The problem it solves: A **conventional segmentation network** labels each
+  pixel mainly from a **small local neighbourhood**. It sees a small area, not
+  the whole scene.
+- The **Pyramid Pooling Module** looks at **several scales at once.** It pools
+  the feature map over the **whole image** and over grids of **2x2**, **3x3**,
+  and **6x6** regions.
+- **Every pixel gets access to all four scales.** The results are upsampled to
+  the feature-map size and combined.
+- This **adds global context** to the local pixel information.
+- This is useful for cloud segmentation: Fish, Flower, Gravel, and Sugar are
+  mainly **distinguished by their large-scale patterns** rather than local pixel
+  appearance.
+
+*Sources: Zhao et al., [Pyramid Scene Parsing
+Network](https://arxiv.org/abs/1612.01105), CVPR 2017 - the original paper - and
+[GeeksforGeeks: PSPNet - Pyramid Scene Parsing Network for Image
+Segmentation](https://www.geeksforgeeks.org/computer-vision/pspnet-pyramid-scene-parsing-network-for-image-segmentation/)*
 """)
 
+    # The SVG export of `06-model-pspnet-rosner-architecture.drawio`, not the
+    # PNG: `st.image()` resamples a raster image down to the requested width
+    # before sending it, which turns the thin lines and the small labels of the
+    # diagram into mush. An .svg path is inlined as a data URI untouched, so
+    # the width below only scales the vector and costs no sharpness.
+    #
+    #   drawio --export --format svg --svg-theme light --border 10 \
+    #       --output reports/figures/rosner-pspnet-architecture.svg \
+    #       reports/figures/06-model-pspnet-rosner-architecture.drawio
+    #
+    # The diagram is portrait (860 x 1142), so a width of 520 makes it about as
+    # tall as the bullet list next to it.
+    container_diagram.image(
+        FIGURES_DIR / 'rosner-pspnet-architecture.svg',
+        width=700,
+    )
 
-device = torch.device(
-    'cuda' if torch.cuda.is_available() else 'cpu'
-)
+with tab_library:
+    st.markdown("""
+- **The whole architecture comes from one call.** `smp` assembles the pyramid pooling module and
+  the encoder; nothing of it is written by hand.
+- **`encoder_weights='imagenet'`** starts the ResNet-34 encoder pre-trained, so the training only
+  has to adapt it to satellite images instead of learning features from scratch.
+- **`classes=4`** gives one output channel per cloud type - this is what makes the model
+  multi-label.
+""")
+    st.code(MODEL_SNIPPET, language='python')
+
+st.divider()
+
+# --------------------------------------------------------------------------- #
+# The model, live
+# --------------------------------------------------------------------------- #
+
+st.header('Live example')
+
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 model = load_model_pspnet(device)
 
@@ -121,9 +191,7 @@ image_rgb = decode_image_rgb(image_bytes)
 
 
 if image_rgb is None:
-    st.error(
-        f'The image {image_name} could not be read'
-    )
+    st.error(f'The image {image_name} could not be read')
     st.stop()
 
 
@@ -153,25 +221,17 @@ csi_predicted = CloudSegmentationImage.from_image_and_masks(
 )
 
 
-predicted_image_rgb = draw_segmap_on_image(
-    csi_predicted
-)
+predicted_image_rgb = draw_segmap_on_image(csi_predicted)
 
 
 if predicted_image_rgb is None:
-    st.error(
-        f'The segmentation map of {image_name} could not be drawn'
-    )
+    st.error(f'The segmentation map of {image_name} could not be drawn')
     st.stop()
 
 
-st.write(
-    f'### Image {image_name}'
-)
+st.write(f'### Image {image_name}')
 
-st.write(
-    f'**Detected:** {", ".join(labels) if labels else "none"}'
-)
+st.write(f'**Detected:** {", ".join(labels) if labels else "none"}')
 
 
 container_left, container_right = st.columns(2)
