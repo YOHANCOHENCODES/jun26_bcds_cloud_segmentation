@@ -20,7 +20,7 @@ st.markdown(
         font-weight:600;
         text-align:left;
     ">
-        UNet architecture
+        U-Net architecture
     </p>
     """,
     unsafe_allow_html=True,
@@ -410,7 +410,7 @@ test dataset or to an image uploaded by the user.
 
 The model predicts four independent cloud masks:
 
-**Fish, Flower, Gravel and Sugar**
+**Fish (red), Flower (green), Gravel (blue) and Sugar (yellow)**
 
 This is a **multi-label segmentation problem**, meaning that
 a pixel can belong to more than one cloud class.
