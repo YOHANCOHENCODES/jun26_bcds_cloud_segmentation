@@ -7,5 +7,5 @@
 # Root font size in pixels; Streamlit's default is 16. Everything else is
 # defined relative to it - body text, headings, code blocks, widget labels and
 # captions - so this single value scales the whole app and keeps all pages
-# consistent. 24 is 1.5x the default, chosen for readability on a projector.
-baseFontSize = 24
+# consistent.
+baseFontSize = 20

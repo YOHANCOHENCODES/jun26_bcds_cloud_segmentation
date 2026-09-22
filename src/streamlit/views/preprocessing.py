@@ -19,43 +19,6 @@ from src.visualization.image_display import draw_segmap_on_image
 # The augmentation pipeline
 # --------------------------------------------------------------------------- #
 
-# One row per transformation: how often it fires, what it changes, and why it
-# is physically plausible for satellite imagery. The table is shown on the page
-# and describes exactly the pipeline built below it.
-TRANSFORMATIONS = pd.DataFrame(
-    [
-        (
-            'HorizontalFlip',
-            0.3,
-            'Geometric',
-            'Satellite images have no canonical orientation, so a mirrored '
-            'scene stays physically plausible.',
-        ),
-        (
-            'VerticalFlip',
-            0.3,
-            'Geometric',
-            'Same reasoning as the horizontal flip; doubles the orientation '
-            'variety at no cost.',
-        ),
-        (
-            'RandomBrightnessContrast',
-            0.8,
-            'Photometric',
-            'Simulates different illumination and imaging conditions. Applied '
-            'to the image only, never to the masks.',
-        ),
-        (
-            'Rotate',
-            0.6,
-            'Geometric',
-            "Cloud formations occur in any orientation; reduces the model's "
-            'dependence on a fixed layout.',
-        ),
-    ],
-    columns=['Transformation', 'p', 'Type', 'Reason'],
-)
-
 pipeline = A.Compose(
     [
         A.HorizontalFlip(p=0.3),
@@ -64,23 +27,6 @@ pipeline = A.Compose(
         A.Rotate(p=0.6),
     ]
 )
-
-# How the pipeline is called during training. `csi` is an instance of our own
-# `CloudSegmentationImage`, which holds an image together with its masks.
-PIPELINE_SNIPPET = """import albumentations as A
-
-pipeline = A.Compose([
-    A.HorizontalFlip(p=0.3),
-    A.VerticalFlip(p=0.3),
-    A.RandomBrightnessContrast(p=0.8),
-    A.Rotate(p=0.6),
-])
-
-transformed_data = pipeline(
-    image=csi.get_image_rgb(),
-    masks=csi.get_mask_stack(),
-)
-"""
 
 
 def augment(csi: CloudSegmentationImage) -> CloudSegmentationImage:
@@ -158,15 +104,23 @@ with tab_pipeline:
         'Each transformation has its own probability `p`, so an image receives '
         'a different combination of transformations every time it is requested.'
     )
-    st.dataframe(
-        TRANSFORMATIONS,
-        hide_index=True,
-        width='stretch',
-        column_config={
-            'p': st.column_config.NumberColumn(format='%.2f', width='small')
-        },
+    st.code(
+        """import albumentations as A
+
+pipeline = A.Compose([
+    A.HorizontalFlip(p=0.3),
+    A.VerticalFlip(p=0.3),
+    A.RandomBrightnessContrast(p=0.8),
+    A.Rotate(p=0.6),
+])
+
+transformed_data = pipeline(
+    image=csi.get_image_rgb(),
+    masks=csi.get_mask_stack(),
+)
+""",
+        language='python',
     )
-    st.code(PIPELINE_SNIPPET, language='python')
     st.markdown("""
 **Training data only.** Augmentation is applied to the training data only, to increase the variety of
 the images and improve generalisation. The validation data is only resized and normalised, never
